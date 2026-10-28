@@ -1,0 +1,97 @@
+﻿<Window x:Class="LibraryWpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Библиотека — информационная система"
+        Height="820" Width="1320"
+        MinHeight="700" MinWidth="1100"
+        WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="{StaticResource PrimaryBrush}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <StackPanel Margin="22,28,18,14">
+                    <TextBlock Text="БИБЛИОТЕКА"
+                               Foreground="White"
+                               FontSize="22"
+                               FontWeight="Bold" />
+                    <TextBlock Text="информационная система"
+                               Foreground="#AED6F1"
+                               FontSize="11"
+                               Margin="0,4,0,0" />
+                </StackPanel>
+
+                <ListBox x:Name="NavList"
+                         Grid.Row="1"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         ItemContainerStyle="{StaticResource NavItemStyle}"
+                         SelectionChanged="NavList_SelectionChanged">
+                    <ListBoxItem Tag="home">Главная</ListBoxItem>
+                    <ListBoxItem Tag="books">Книги</ListBoxItem>
+                    <ListBoxItem Tag="readers">Читатели</ListBoxItem>
+                    <ListBoxItem Tag="copies">Экземпляры</ListBoxItem>
+                    <ListBoxItem Tag="loans">Выдачи</ListBoxItem>
+                    <ListBoxItem Tag="reservations">Бронирования</ListBoxItem>
+                    <ListBoxItem Tag="authors">Авторы</ListBoxItem>
+                    <ListBoxItem Tag="publishers">Издательства</ListBoxItem>
+                    <ListBoxItem Tag="genres">Жанры</ListBoxItem>
+                    <ListBoxItem Tag="employees">Сотрудники</ListBoxItem>
+                    <ListBoxItem Tag="bookauthors">Связи книг и авторов</ListBoxItem>
+                    <ListBoxItem Tag="operations">Операции</ListBoxItem>
+                    <ListBoxItem Tag="about">О программе</ListBoxItem>
+                </ListBox>
+
+                <StackPanel Grid.Row="2" Margin="22,0,18,20">
+                    <TextBlock Text="Улан-Удэ, 2026"
+                               Foreground="#85C1E9"
+                               FontSize="11" />
+                    <TextBlock Text="Лушников Я.А., гр. Б723"
+                               Foreground="#D6EAF8"
+                               FontSize="11"
+                               Margin="0,4,0,0" />
+                    <TextBlock Text="02.03.03 МОАИС"
+                               Foreground="#AED6F1"
+                               FontSize="10"
+                               Margin="0,2,0,0" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="32" />
+            </Grid.RowDefinitions>
+
+            <ContentControl x:Name="ContentHost" />
+
+            <StatusBar Grid.Row="1"
+                       Background="White"
+                       BorderBrush="#E5E8EB"
+                       BorderThickness="0,1,0,0">
+                <StatusBarItem>
+                    <TextBlock x:Name="DbStatus"
+                               Text="Подключение: LibraryDB (LocalDB)"
+                               FontSize="11"
+                               Foreground="#5D6D7E" />
+                </StatusBarItem>
+                <Separator />
+                <StatusBarItem>
+                    <TextBlock x:Name="DateStatus"
+                               FontSize="11"
+                               Foreground="#5D6D7E" />
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+    </Grid>
+</Window>
