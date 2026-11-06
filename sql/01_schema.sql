@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Курсовая работа. Предметная область «Библиотека»
    Скрипт создания базы данных LibraryDB
    СУБД: Microsoft SQL Server 2019 Express (LocalDB)
@@ -17,6 +17,9 @@ END
 GO
 
 CREATE DATABASE LibraryDB;
+GO
+
+ALTER AUTHORIZATION ON DATABASE::LibraryDB TO sa;
 GO
 
 USE LibraryDB;
