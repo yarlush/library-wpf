@@ -81,7 +81,6 @@ CREATE TABLE Books
     Genre           NVARCHAR(60)      NOT NULL,
     Author          NVARCHAR(150)     NOT NULL,
     PublisherId     INT               NOT NULL,
-    Annotation      NVARCHAR(500)     NULL,
     CONSTRAINT PK_Books PRIMARY KEY (BookId),
     CONSTRAINT UQ_Books_ISBN UNIQUE (ISBN),
     CONSTRAINT CK_Books_Year CHECK (PublicationYear BETWEEN 1500 AND 2100),

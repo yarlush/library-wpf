@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using LibraryWpf.Data;
 using LibraryWpf.Models;
 using Microsoft.EntityFrameworkCore;
@@ -41,8 +41,7 @@ public static class Pages
                     Price = 0,
                     Genre = "Роман",
                     Author = "Новый автор",
-                    PublisherId = publisherId,
-                    Annotation = string.Empty
+                    PublisherId = publisherId
                 };
             },
             (context, item) => context.Books.Add(item),

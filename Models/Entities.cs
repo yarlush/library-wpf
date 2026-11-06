@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace LibraryWpf.Models;
@@ -64,8 +64,6 @@ public class Book
     public string Genre { get; set; } = string.Empty;
     public string Author { get; set; } = string.Empty;
     public int PublisherId { get; set; }
-    public string? Annotation { get; set; }
-
     public Publisher Publisher { get; set; } = null!;
     public ICollection<Copy> Copies { get; set; } = new List<Copy>();
 }
