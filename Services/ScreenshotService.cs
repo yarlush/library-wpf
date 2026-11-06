@@ -19,8 +19,8 @@ public static class ScreenshotService
         await CapturePage(window, "readers", "03_readers.png", outputDirectory);
         await CapturePage(window, "copies", "04_copies.png", outputDirectory);
         await CapturePage(window, "loans", "05_loans.png", outputDirectory);
-        await CapturePage(window, "reservations", "06_reservations.png", outputDirectory);
-        await CapturePage(window, "bookauthors", "07_bookauthors.png", outputDirectory);
+        await CapturePage(window, "publishers", "06_publishers.png", outputDirectory);
+        await CapturePage(window, "employees", "07_employees.png", outputDirectory);
 
         window.NavigateTo("operations");
         await WaitAsync();
@@ -36,14 +36,10 @@ public static class ScreenshotService
 
             operations.SelectTab(2);
             await WaitAsync();
-            Capture(window, Path.Combine(outputDirectory, "10_reserve.png"));
-
-            operations.SelectTab(3);
-            await WaitAsync();
-            Capture(window, Path.Combine(outputDirectory, "11_writeoff.png"));
+            Capture(window, Path.Combine(outputDirectory, "10_writeoff.png"));
         }
 
-        await CapturePage(window, "about", "12_about.png", outputDirectory);
+        await CapturePage(window, "about", "11_about.png", outputDirectory);
     }
 
     private static async Task CapturePage(MainWindow window, string key, string fileName, string outputDirectory)

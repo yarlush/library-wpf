@@ -8,26 +8,10 @@ public static class Lookups
     public static List<LookupItem> Options(params string[] values)
         => values.Select(v => new LookupItem { Id = v, Display = v }).ToList();
 
-    public static List<LookupItem> Genres(LibraryContext context)
-        => context.Genres.AsNoTracking().OrderBy(x => x.Name)
-            .AsEnumerable()
-            .Select(x => new LookupItem { Id = x.GenreId, Display = x.Name })
-            .ToList();
-
     public static List<LookupItem> Publishers(LibraryContext context)
         => context.Publishers.AsNoTracking().OrderBy(x => x.Name)
             .AsEnumerable()
             .Select(x => new LookupItem { Id = x.PublisherId, Display = x.Name })
-            .ToList();
-
-    public static List<LookupItem> Authors(LibraryContext context)
-        => context.Authors.AsNoTracking().OrderBy(x => x.LastName).ThenBy(x => x.FirstName)
-            .AsEnumerable()
-            .Select(x => new LookupItem
-            {
-                Id = x.AuthorId,
-                Display = $"{x.LastName} {x.FirstName} {x.MiddleName}".Trim()
-            })
             .ToList();
 
     public static List<LookupItem> Books(LibraryContext context)
@@ -79,15 +63,4 @@ public static class Lookups
             })
             .ToList();
 
-    public static List<LookupItem> ActiveReaders(LibraryContext context)
-        => context.Readers.AsNoTracking()
-            .Where(x => x.IsActive)
-            .OrderBy(x => x.LastName).ThenBy(x => x.FirstName)
-            .AsEnumerable()
-            .Select(x => new LookupItem
-            {
-                Id = x.ReaderId,
-                Display = $"{x.LibraryCardNumber} — {x.LastName} {x.FirstName}"
-            })
-            .ToList();
 }

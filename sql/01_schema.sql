@@ -2,6 +2,7 @@
    Курсовая работа. Предметная область «Библиотека»
    Скрипт создания базы данных LibraryDB
    СУБД: Microsoft SQL Server 2019 Express (LocalDB)
+   Упрощённая модель: 6 таблиц
    ============================================================ */
 
 SET QUOTED_IDENTIFIER ON;
@@ -21,14 +22,37 @@ GO
 USE LibraryDB;
 GO
 
-/* ---------- Справочник жанров ---------- */
-CREATE TABLE Genres
+/* ---------- Читатели ---------- */
+CREATE TABLE Readers
 (
-    GenreId     INT IDENTITY(1,1) NOT NULL,
-    Name        NVARCHAR(60)      NOT NULL,
-    Description NVARCHAR(300)     NULL,
-    CONSTRAINT PK_Genres PRIMARY KEY (GenreId),
-    CONSTRAINT UQ_Genres_Name UNIQUE (Name)
+    ReaderId          INT IDENTITY(1,1) NOT NULL,
+    LibraryCardNumber NVARCHAR(20)      NOT NULL,
+    LastName          NVARCHAR(50)      NOT NULL,
+    FirstName         NVARCHAR(50)      NOT NULL,
+    MiddleName        NVARCHAR(50)      NULL,
+    BirthDate         DATE              NULL,
+    Address           NVARCHAR(200)     NULL,
+    Phone             NVARCHAR(30)      NULL,
+    Email             NVARCHAR(80)      NULL,
+    Category          NVARCHAR(30)      NOT NULL,
+    RegistrationDate  DATE              NOT NULL CONSTRAINT DF_Readers_RegistrationDate DEFAULT CAST(GETDATE() AS DATE),
+    CONSTRAINT PK_Readers PRIMARY KEY (ReaderId),
+    CONSTRAINT UQ_Readers_Card UNIQUE (LibraryCardNumber),
+    CONSTRAINT CK_Readers_Category CHECK (Category IN (N'Студент', N'Преподаватель', N'Сотрудник', N'Школьник', N'Пенсионер', N'Другой'))
+);
+GO
+
+/* ---------- Сотрудники ---------- */
+CREATE TABLE Employees
+(
+    EmployeeId INT IDENTITY(1,1) NOT NULL,
+    LastName   NVARCHAR(50)      NOT NULL,
+    FirstName  NVARCHAR(50)      NOT NULL,
+    MiddleName NVARCHAR(50)      NULL,
+    Position   NVARCHAR(60)      NOT NULL,
+    Phone      NVARCHAR(30)      NULL,
+    HireDate   DATE              NOT NULL,
+    CONSTRAINT PK_Employees PRIMARY KEY (EmployeeId)
 );
 GO
 
@@ -45,20 +69,6 @@ CREATE TABLE Publishers
 );
 GO
 
-/* ---------- Авторы ---------- */
-CREATE TABLE Authors
-(
-    AuthorId   INT IDENTITY(1,1) NOT NULL,
-    LastName   NVARCHAR(50)      NOT NULL,
-    FirstName  NVARCHAR(50)      NOT NULL,
-    MiddleName NVARCHAR(50)      NULL,
-    Country    NVARCHAR(60)      NULL,
-    BirthYear  SMALLINT          NULL,
-    CONSTRAINT PK_Authors PRIMARY KEY (AuthorId),
-    CONSTRAINT CK_Authors_BirthYear CHECK (BirthYear IS NULL OR BirthYear BETWEEN 1000 AND 2100)
-);
-GO
-
 /* ---------- Книги (библиографические описания) ---------- */
 CREATE TABLE Books
 (
@@ -68,7 +78,8 @@ CREATE TABLE Books
     PublicationYear SMALLINT          NOT NULL,
     Pages           INT               NOT NULL,
     Price           DECIMAL(10,2)     NOT NULL,
-    GenreId         INT               NOT NULL,
+    Genre           NVARCHAR(60)      NOT NULL,
+    Author          NVARCHAR(150)     NOT NULL,
     PublisherId     INT               NOT NULL,
     Annotation      NVARCHAR(500)     NULL,
     CONSTRAINT PK_Books PRIMARY KEY (BookId),
@@ -76,19 +87,7 @@ CREATE TABLE Books
     CONSTRAINT CK_Books_Year CHECK (PublicationYear BETWEEN 1500 AND 2100),
     CONSTRAINT CK_Books_Pages CHECK (Pages > 0),
     CONSTRAINT CK_Books_Price CHECK (Price >= 0),
-    CONSTRAINT FK_Books_Genres FOREIGN KEY (GenreId) REFERENCES Genres (GenreId),
     CONSTRAINT FK_Books_Publishers FOREIGN KEY (PublisherId) REFERENCES Publishers (PublisherId)
-);
-GO
-
-/* ---------- Связь «книга – автор» (M:N) ---------- */
-CREATE TABLE BookAuthors
-(
-    BookId   INT NOT NULL,
-    AuthorId INT NOT NULL,
-    CONSTRAINT PK_BookAuthors PRIMARY KEY (BookId, AuthorId),
-    CONSTRAINT FK_BookAuthors_Books FOREIGN KEY (BookId) REFERENCES Books (BookId) ON DELETE CASCADE,
-    CONSTRAINT FK_BookAuthors_Authors FOREIGN KEY (AuthorId) REFERENCES Authors (AuthorId)
 );
 GO
 
@@ -106,41 +105,6 @@ CREATE TABLE Copies
     CONSTRAINT UQ_Copies_InventoryNumber UNIQUE (InventoryNumber),
     CONSTRAINT CK_Copies_Status CHECK (Status IN (N'Доступен', N'Выдан', N'Списан')),
     CONSTRAINT FK_Copies_Books FOREIGN KEY (BookId) REFERENCES Books (BookId)
-);
-GO
-
-/* ---------- Читатели ---------- */
-CREATE TABLE Readers
-(
-    ReaderId          INT IDENTITY(1,1) NOT NULL,
-    LibraryCardNumber NVARCHAR(20)      NOT NULL,
-    LastName          NVARCHAR(50)      NOT NULL,
-    FirstName         NVARCHAR(50)      NOT NULL,
-    MiddleName        NVARCHAR(50)      NULL,
-    BirthDate         DATE              NULL,
-    Address           NVARCHAR(200)     NULL,
-    Phone             NVARCHAR(30)      NULL,
-    Email             NVARCHAR(80)      NULL,
-    Category          NVARCHAR(30)      NOT NULL,
-    RegistrationDate  DATE              NOT NULL CONSTRAINT DF_Readers_RegistrationDate DEFAULT CAST(GETDATE() AS DATE),
-    IsActive          BIT               NOT NULL CONSTRAINT DF_Readers_IsActive DEFAULT 1,
-    CONSTRAINT PK_Readers PRIMARY KEY (ReaderId),
-    CONSTRAINT UQ_Readers_Card UNIQUE (LibraryCardNumber),
-    CONSTRAINT CK_Readers_Category CHECK (Category IN (N'Студент', N'Преподаватель', N'Сотрудник', N'Школьник', N'Пенсионер', N'Другой'))
-);
-GO
-
-/* ---------- Сотрудники библиотеки ---------- */
-CREATE TABLE Employees
-(
-    EmployeeId INT IDENTITY(1,1) NOT NULL,
-    LastName   NVARCHAR(50)      NOT NULL,
-    FirstName  NVARCHAR(50)      NOT NULL,
-    MiddleName NVARCHAR(50)      NULL,
-    Position   NVARCHAR(60)      NOT NULL,
-    Phone      NVARCHAR(30)      NULL,
-    HireDate   DATE              NOT NULL,
-    CONSTRAINT PK_Employees PRIMARY KEY (EmployeeId)
 );
 GO
 
@@ -163,34 +127,17 @@ CREATE TABLE Loans
 );
 GO
 
-/* ---------- Бронирования ---------- */
-CREATE TABLE Reservations
-(
-    ReservationId   INT IDENTITY(1,1) NOT NULL,
-    BookId          INT               NOT NULL,
-    ReaderId        INT               NOT NULL,
-    ReservationDate DATE              NOT NULL CONSTRAINT DF_Reservations_Date DEFAULT CAST(GETDATE() AS DATE),
-    Status          NVARCHAR(20)      NOT NULL CONSTRAINT DF_Reservations_Status DEFAULT N'Активно',
-    CONSTRAINT PK_Reservations PRIMARY KEY (ReservationId),
-    CONSTRAINT CK_Reservations_Status CHECK (Status IN (N'Активно', N'Выполнено', N'Отменено')),
-    CONSTRAINT FK_Reservations_Books FOREIGN KEY (BookId) REFERENCES Books (BookId),
-    CONSTRAINT FK_Reservations_Readers FOREIGN KEY (ReaderId) REFERENCES Readers (ReaderId)
-);
-GO
-
 /* ---------- Индексы ---------- */
 CREATE INDEX IX_Books_Title ON Books (Title);
-CREATE INDEX IX_Books_GenreId ON Books (GenreId);
+CREATE INDEX IX_Books_Author ON Books (Author);
+CREATE INDEX IX_Books_Genre ON Books (Genre);
 CREATE INDEX IX_Books_PublisherId ON Books (PublisherId);
-CREATE INDEX IX_BookAuthors_AuthorId ON BookAuthors (AuthorId);
 CREATE INDEX IX_Copies_BookId ON Copies (BookId);
 CREATE INDEX IX_Copies_Status ON Copies (Status);
 CREATE INDEX IX_Loans_ReaderId ON Loans (ReaderId);
 CREATE INDEX IX_Loans_CopyId ON Loans (CopyId);
 CREATE INDEX IX_Loans_ReturnDate ON Loans (ReturnDate);
 CREATE INDEX IX_Loans_DueDate ON Loans (DueDate);
-CREATE INDEX IX_Reservations_BookId ON Reservations (BookId);
-CREATE INDEX IX_Reservations_ReaderId ON Reservations (ReaderId);
 
 /* Один экземпляр не может быть одновременно выдан более одного раза */
 CREATE UNIQUE INDEX UX_Loans_ActiveCopy ON Loans (CopyId) WHERE ReturnDate IS NULL;
@@ -228,6 +175,7 @@ SELECT l.LoanId,
        r.LibraryCardNumber,
        r.LastName + N' ' + r.FirstName + ISNULL(N' ' + r.MiddleName, N'') AS ReaderFIO,
        b.Title AS BookTitle,
+       b.Author,
        c.InventoryNumber,
        l.IssueDate,
        l.DueDate,
@@ -247,6 +195,7 @@ SELECT c.CopyId,
        c.InventoryNumber,
        b.BookId,
        b.Title,
+       b.Author,
        b.PublicationYear,
        c.Hall,
        c.Shelf
@@ -278,8 +227,8 @@ BEGIN
         IF NOT EXISTS (SELECT 1 FROM Copies WHERE CopyId = @CopyId AND Status = N'Доступен')
             THROW 50002, N'Экземпляр недоступен для выдачи.', 1;
 
-        IF NOT EXISTS (SELECT 1 FROM Readers WHERE ReaderId = @ReaderId AND IsActive = 1)
-            THROW 50003, N'Читатель не найден или неактивен.', 1;
+        IF NOT EXISTS (SELECT 1 FROM Readers WHERE ReaderId = @ReaderId)
+            THROW 50003, N'Читатель не найден.', 1;
 
         IF NOT EXISTS (SELECT 1 FROM Employees WHERE EmployeeId = @EmployeeId)
             THROW 50004, N'Сотрудник не найден.', 1;
@@ -334,46 +283,6 @@ BEGIN
                        END
           FROM Loans
          WHERE LoanId = @LoanId;
-
-        COMMIT TRANSACTION;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0
-            ROLLBACK TRANSACTION;
-        THROW;
-    END CATCH
-END;
-GO
-
-/* ---------- Хранимая процедура бронирования ---------- */
-CREATE PROCEDURE usp_ReserveBook
-    @BookId   INT,
-    @ReaderId INT,
-    @ReservationId INT = NULL OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    BEGIN TRY
-        BEGIN TRANSACTION;
-
-        IF NOT EXISTS (SELECT 1 FROM Books WHERE BookId = @BookId)
-            THROW 50021, N'Книга не найдена.', 1;
-
-        IF NOT EXISTS (SELECT 1 FROM Readers WHERE ReaderId = @ReaderId AND IsActive = 1)
-            THROW 50022, N'Читатель не найден или неактивен.', 1;
-
-        IF EXISTS (SELECT 1
-                     FROM Reservations
-                    WHERE BookId = @BookId
-                      AND ReaderId = @ReaderId
-                      AND Status = N'Активно')
-            THROW 50023, N'У читателя уже есть активное бронирование этой книги.', 1;
-
-        INSERT INTO Reservations (BookId, ReaderId, ReservationDate, Status)
-        VALUES (@BookId, @ReaderId, CAST(GETDATE() AS DATE), N'Активно');
-
-        SET @ReservationId = SCOPE_IDENTITY();
 
         COMMIT TRANSACTION;
     END TRY

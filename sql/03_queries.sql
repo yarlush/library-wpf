@@ -1,6 +1,7 @@
 /* ============================================================
    Курсовая работа. Предметная область «Библиотека»
    Запросы к базе данных LibraryDB
+   Упрощённая модель: 6 таблиц
    ============================================================ */
 USE LibraryDB;
 GO
@@ -9,40 +10,37 @@ SET NOCOUNT ON;
 GO
 
 /* ------------------------------------------------------------
-   Запрос 1. Книги заданного автора (по фамилии)
+   Запрос 1. Книги заданного автора
    ------------------------------------------------------------ */
-DECLARE @AuthorLastName NVARCHAR(50) = N'Толстой';
+DECLARE @Author NVARCHAR(150) = N'Толстой';
 
-SELECT DISTINCT
-       b.BookId,
+SELECT b.BookId,
        b.Title,
+       b.Author,
        b.PublicationYear,
-       g.Name AS Genre,
+       b.Genre,
        p.Name AS Publisher
   FROM Books b
-  JOIN BookAuthors ba ON ba.BookId = b.BookId
-  JOIN Authors a ON a.AuthorId = ba.AuthorId
-  JOIN Genres g ON g.GenreId = b.GenreId
   JOIN Publishers p ON p.PublisherId = b.PublisherId
- WHERE a.LastName = @AuthorLastName
+ WHERE b.Author LIKE N'%' + @Author + N'%'
  ORDER BY b.Title;
 GO
 
 /* ------------------------------------------------------------
    Запрос 2. Книги выбранного жанра с количеством экземпляров
    ------------------------------------------------------------ */
-DECLARE @GenreName NVARCHAR(60) = N'Фантастика';
+DECLARE @Genre NVARCHAR(60) = N'Фантастика';
 
 SELECT b.Title,
+       b.Author,
        b.PublicationYear,
        p.Name AS Publisher,
        COUNT(c.CopyId) AS CopiesCount
   FROM Books b
-  JOIN Genres g ON g.GenreId = b.GenreId
   JOIN Publishers p ON p.PublisherId = b.PublisherId
   LEFT JOIN Copies c ON c.BookId = b.BookId
- WHERE g.Name = @GenreName
- GROUP BY b.BookId, b.Title, b.PublicationYear, p.Name
+ WHERE b.Genre = @Genre
+ GROUP BY b.BookId, b.Title, b.Author, b.PublicationYear, p.Name
  ORDER BY b.Title;
 GO
 
@@ -53,6 +51,7 @@ SELECT l.LoanId,
        r.LibraryCardNumber,
        r.LastName + N' ' + r.FirstName + ISNULL(N' ' + r.MiddleName, N'') AS ReaderFIO,
        b.Title AS BookTitle,
+       b.Author,
        c.InventoryNumber,
        l.IssueDate,
        l.DueDate,
@@ -90,6 +89,7 @@ GO
 DECLARE @CardNumber NVARCHAR(20) = N'Ч-0001';
 
 SELECT b.Title AS BookTitle,
+       b.Author,
        c.InventoryNumber,
        l.IssueDate,
        l.DueDate,
@@ -112,12 +112,13 @@ GO
    ------------------------------------------------------------ */
 SELECT TOP (10)
        b.Title,
+       b.Author,
        COUNT(l.LoanId) AS LoansCount,
        COUNT(DISTINCT l.ReaderId) AS ReadersCount
   FROM Books b
   JOIN Copies c ON c.BookId = b.BookId
   JOIN Loans l ON l.CopyId = c.CopyId
- GROUP BY b.BookId, b.Title
+ GROUP BY b.BookId, b.Title, b.Author
  ORDER BY LoansCount DESC, b.Title;
 GO
 
@@ -127,6 +128,7 @@ GO
 DECLARE @BookTitle NVARCHAR(200) = N'Война и мир';
 
 SELECT b.Title,
+       b.Author,
        COUNT(c.CopyId) AS TotalCopies,
        SUM(CASE WHEN c.Status = N'Доступен' THEN 1 ELSE 0 END) AS AvailableCopies,
        SUM(CASE WHEN c.Status = N'Выдан' THEN 1 ELSE 0 END) AS IssuedCopies,
@@ -134,37 +136,35 @@ SELECT b.Title,
   FROM Books b
   LEFT JOIN Copies c ON c.BookId = b.BookId
  WHERE b.Title LIKE N'%' + @BookTitle + N'%'
- GROUP BY b.BookId, b.Title;
+ GROUP BY b.BookId, b.Title, b.Author;
 GO
 
 /* ------------------------------------------------------------
    Запрос 8. Статистика библиотечного фонда по жанрам
    ------------------------------------------------------------ */
-SELECT g.Name AS Genre,
+SELECT b.Genre,
        COUNT(DISTINCT b.BookId) AS BooksCount,
        COUNT(c.CopyId) AS CopiesCount,
        COUNT(l.LoanId) AS LoansCount
-  FROM Genres g
-  LEFT JOIN Books b ON b.GenreId = g.GenreId
+  FROM Books b
   LEFT JOIN Copies c ON c.BookId = b.BookId
   LEFT JOIN Loans l ON l.CopyId = c.CopyId
- GROUP BY g.GenreId, g.Name
- ORDER BY BooksCount DESC, g.Name;
+ GROUP BY b.Genre
+ ORDER BY BooksCount DESC, b.Genre;
 GO
 
 /* ------------------------------------------------------------
-   Запрос 9. Очередь активных бронирований
+   Запрос 9. Издательства и количество выпущенных книг
    ------------------------------------------------------------ */
-SELECT b.Title AS BookTitle,
-       r.LibraryCardNumber,
-       r.LastName + N' ' + r.FirstName + ISNULL(N' ' + r.MiddleName, N'') AS ReaderFIO,
-       res.ReservationDate,
-       ROW_NUMBER() OVER (PARTITION BY res.BookId ORDER BY res.ReservationDate) AS QueuePosition
-  FROM Reservations res
-  JOIN Books b ON b.BookId = res.BookId
-  JOIN Readers r ON r.ReaderId = res.ReaderId
- WHERE res.Status = N'Активно'
- ORDER BY b.Title, QueuePosition;
+SELECT p.Name AS Publisher,
+       p.City,
+       COUNT(DISTINCT b.BookId) AS BooksCount,
+       COUNT(c.CopyId) AS CopiesCount
+  FROM Publishers p
+  LEFT JOIN Books b ON b.PublisherId = p.PublisherId
+  LEFT JOIN Copies c ON c.BookId = b.BookId
+ GROUP BY p.PublisherId, p.Name, p.City
+ ORDER BY BooksCount DESC, p.Name;
 GO
 
 /* ------------------------------------------------------------

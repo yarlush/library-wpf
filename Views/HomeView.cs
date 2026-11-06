@@ -51,13 +51,12 @@ public class HomeView : UserControl
         var copiesCount = context.Copies.Count();
         var activeLoans = context.Loans.Count(x => x.ReturnDate == null);
         var overdue = context.Loans.Count(x => x.ReturnDate == null && x.DueDate < DateTime.Today);
-        var reservations = context.Reservations.Count(x => x.Status == "Активно");
 
         var cards = new UniformGrid { Columns = 4, Margin = new Thickness(0, 0, 0, 18) };
         cards.Children.Add(MakeCard("Книг в каталоге", booksCount.ToString(), $"{copiesCount} экземпляров", Color.FromRgb(31, 78, 121)));
         cards.Children.Add(MakeCard("Читателей", readersCount.ToString(), "зарегистрировано", Color.FromRgb(46, 134, 193)));
         cards.Children.Add(MakeCard("Активных выдач", activeLoans.ToString(), "книги на руках", Color.FromRgb(39, 174, 96)));
-        cards.Children.Add(MakeCard("Просрочено", overdue.ToString(), $"{reservations} активных брони", Color.FromRgb(192, 57, 43)));
+        cards.Children.Add(MakeCard("Просрочено", overdue.ToString(), "выдач с задолженностью", Color.FromRgb(192, 57, 43)));
         Grid.SetRow(cards, 1);
         root.Children.Add(cards);
 
@@ -86,7 +85,7 @@ public class HomeView : UserControl
         welcomeStack.Children.Add(new TextBlock
         {
             Text = "Приложение предназначено для автоматизации работы библиотеки: ведения каталога книг, " +
-                   "учёта экземпляров, регистрации читателей, оформления выдачи и возврата, бронирования " +
+                   "учёта экземпляров, регистрации читателей, оформления выдачи и возврата " +
                    "и формирования отчётности.",
             TextWrapping = TextWrapping.Wrap,
             FontSize = 13,
@@ -106,9 +105,9 @@ public class HomeView : UserControl
                      "просмотр, добавление, изменение и удаление записей;",
                      "поиск по таблицам и справочникам;",
                      "оформление выдачи и возврата книг;",
-                     "бронирование книг и списание экземпляров;",
+                     "списание экземпляров;",
                      "контроль просроченных выдач и задолженностей;",
-                     "управление связями книг и авторов."
+                     "учёт издательств и сотрудников."
                  })
         {
             welcomeStack.Children.Add(new TextBlock

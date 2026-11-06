@@ -41,12 +41,8 @@
                     <ListBoxItem Tag="readers">Читатели</ListBoxItem>
                     <ListBoxItem Tag="copies">Экземпляры</ListBoxItem>
                     <ListBoxItem Tag="loans">Выдачи</ListBoxItem>
-                    <ListBoxItem Tag="reservations">Бронирования</ListBoxItem>
-                    <ListBoxItem Tag="authors">Авторы</ListBoxItem>
                     <ListBoxItem Tag="publishers">Издательства</ListBoxItem>
-                    <ListBoxItem Tag="genres">Жанры</ListBoxItem>
                     <ListBoxItem Tag="employees">Сотрудники</ListBoxItem>
-                    <ListBoxItem Tag="bookauthors">Связи книг и авторов</ListBoxItem>
                     <ListBoxItem Tag="operations">Операции</ListBoxItem>
                     <ListBoxItem Tag="about">О программе</ListBoxItem>
                 </ListBox>

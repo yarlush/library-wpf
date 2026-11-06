@@ -13,12 +13,8 @@ public static class Pages
         "readers" => Readers(),
         "copies" => Copies(),
         "loans" => Loans(),
-        "reservations" => Reservations(),
-        "authors" => Authors(),
         "publishers" => Publishers(),
-        "genres" => Genres(),
         "employees" => Employees(),
-        "bookauthors" => new BookAuthorsView(),
         "operations" => new OperationsView(),
         "about" => new AboutView(),
         _ => new HomeView()
@@ -27,16 +23,14 @@ public static class Pages
     private static CrudPage<Book> Books()
     {
         using var lookupContext = new LibraryContext();
-        var genres = Lookups.Genres(lookupContext);
         var publishers = Lookups.Publishers(lookupContext);
 
         return new CrudPage<Book>(
             "Книги",
-            "Библиографические описания книг, их жанры и издательства",
-            context => context.Books.Include(x => x.Genre).Include(x => x.Publisher).OrderBy(x => x.Title),
+            "Библиографические описания книг, их авторы, жанры и издательства",
+            context => context.Books.Include(x => x.Publisher).OrderBy(x => x.Title),
             context =>
             {
-                var genreId = context.Genres.OrderBy(x => x.GenreId).Select(x => x.GenreId).First();
                 var publisherId = context.Publishers.OrderBy(x => x.PublisherId).Select(x => x.PublisherId).First();
                 return new Book
                 {
@@ -45,7 +39,8 @@ public static class Pages
                     PublicationYear = DateTime.Today.Year,
                     Pages = 100,
                     Price = 0,
-                    GenreId = genreId,
+                    Genre = "Роман",
+                    Author = "Новый автор",
                     PublisherId = publisherId,
                     Annotation = string.Empty
                 };
@@ -54,17 +49,17 @@ public static class Pages
             (context, item) => context.Books.Remove(item),
             new List<ColumnSpec>
             {
-                new() { Header = "Код", Property = "BookId", Width = 60, ReadOnly = true },
-                new() { Header = "Название", Property = "Title", Width = 220 },
-                new() { Header = "ISBN", Property = "ISBN", Width = 120 },
-                new() { Header = "Год", Property = "PublicationYear", Width = 70 },
-                new() { Header = "Страниц", Property = "Pages", Width = 75 },
-                new() { Header = "Цена, руб.", Property = "Price", Width = 90, StringFormat = "N2" },
-                new() { Header = "Жанр", Property = "GenreId", Kind = ColumnKind.Combo, Width = 130, Items = genres },
-                new() { Header = "Издательство", Property = "PublisherId", Kind = ColumnKind.Combo, Width = 150, Items = publishers },
-                new() { Header = "Аннотация", Property = "Annotation", Width = 220 }
+                new() { Header = "Код", Property = "BookId", Width = 50, ReadOnly = true },
+                new() { Header = "Название", Property = "Title", Width = 200 },
+                new() { Header = "ISBN", Property = "ISBN", Width = 110 },
+                new() { Header = "Год", Property = "PublicationYear", Width = 60 },
+                new() { Header = "Страниц", Property = "Pages", Width = 65 },
+                new() { Header = "Цена, руб.", Property = "Price", Width = 80, StringFormat = "N2" },
+                new() { Header = "Жанр", Property = "Genre", Width = 110 },
+                new() { Header = "Автор", Property = "Author", Width = 160 },
+                new() { Header = "Издательство", Property = "PublisherId", Kind = ColumnKind.Combo, Width = 130, Items = publishers }
             },
-            book => $"{book.Title} {book.ISBN} {book.Genre?.Name} {book.Publisher?.Name}");
+            book => $"{book.Title} {book.ISBN} {book.Genre} {book.Author} {book.Publisher?.Name}");
     }
 
     private static CrudPage<Reader> Readers()
@@ -84,8 +79,7 @@ public static class Pages
                     LastName = "Новый",
                     FirstName = "Читатель",
                     Category = "Студент",
-                    RegistrationDate = DateTime.Today,
-                    IsActive = true
+                    RegistrationDate = DateTime.Today
                 };
             },
             (context, item) => context.Readers.Add(item),
@@ -102,8 +96,7 @@ public static class Pages
                 new() { Header = "Телефон", Property = "Phone", Width = 120 },
                 new() { Header = "E-mail", Property = "Email", Width = 160 },
                 new() { Header = "Категория", Property = "Category", Kind = ColumnKind.Combo, Width = 110, Items = categories },
-                new() { Header = "Регистрация", Property = "RegistrationDate", Kind = ColumnKind.Date, Width = 110 },
-                new() { Header = "Активен", Property = "IsActive", Kind = ColumnKind.Bool, Width = 65 }
+                new() { Header = "Регистрация", Property = "RegistrationDate", Kind = ColumnKind.Date, Width = 110 }
             },
             reader => $"{reader.LibraryCardNumber} {reader.LastName} {reader.FirstName} {reader.MiddleName} {reader.Phone} {reader.Email}");
     }
@@ -147,27 +140,6 @@ public static class Pages
             copy => $"{copy.InventoryNumber} {copy.Book?.Title} {copy.Status} {copy.Hall} {copy.Shelf}");
     }
 
-    private static CrudPage<Author> Authors()
-    {
-        return new CrudPage<Author>(
-            "Авторы",
-            "Справочник авторов книг",
-            context => context.Authors.OrderBy(x => x.LastName).ThenBy(x => x.FirstName),
-            _ => new Author { LastName = "Новый", FirstName = "Автор" },
-            (context, item) => context.Authors.Add(item),
-            (context, item) => context.Authors.Remove(item),
-            new List<ColumnSpec>
-            {
-                new() { Header = "Код", Property = "AuthorId", Width = 55, ReadOnly = true },
-                new() { Header = "Фамилия", Property = "LastName", Width = 140 },
-                new() { Header = "Имя", Property = "FirstName", Width = 120 },
-                new() { Header = "Отчество", Property = "MiddleName", Width = 140 },
-                new() { Header = "Страна", Property = "Country", Width = 130 },
-                new() { Header = "Год рождения", Property = "BirthYear", Width = 100 }
-            },
-            author => $"{author.LastName} {author.FirstName} {author.MiddleName} {author.Country}");
-    }
-
     private static CrudPage<Publisher> Publishers()
     {
         return new CrudPage<Publisher>(
@@ -187,24 +159,6 @@ public static class Pages
                 new() { Header = "E-mail", Property = "Email", Width = 180 }
             },
             publisher => $"{publisher.Name} {publisher.City} {publisher.Address} {publisher.Phone} {publisher.Email}");
-    }
-
-    private static CrudPage<Genre> Genres()
-    {
-        return new CrudPage<Genre>(
-            "Жанры",
-            "Справочник жанров литературы",
-            context => context.Genres.OrderBy(x => x.Name),
-            _ => new Genre { Name = "Новый жанр" },
-            (context, item) => context.Genres.Add(item),
-            (context, item) => context.Genres.Remove(item),
-            new List<ColumnSpec>
-            {
-                new() { Header = "Код", Property = "GenreId", Width = 55, ReadOnly = true },
-                new() { Header = "Название", Property = "Name", Width = 180 },
-                new() { Header = "Описание", Property = "Description", Width = 420 }
-            },
-            genre => $"{genre.Name} {genre.Description}");
     }
 
     private static CrudPage<Employee> Employees()
@@ -277,44 +231,5 @@ public static class Pages
                 new() { Header = "Дата возврата", Property = "ReturnDate", Kind = ColumnKind.Date, Width = 110 }
             },
             loan => $"{loan.Reader?.LastName} {loan.Copy?.InventoryNumber} {loan.Copy?.Book?.Title} {loan.IssueDate:dd.MM.yyyy}");
-    }
-
-    private static CrudPage<Reservation> Reservations()
-    {
-        using var lookupContext = new LibraryContext();
-        var books = Lookups.Books(lookupContext);
-        var readers = Lookups.Readers(lookupContext);
-        var statuses = Lookups.Options("Активно", "Выполнено", "Отменено");
-
-        return new CrudPage<Reservation>(
-            "Бронирования",
-            "Предварительные заявки читателей на книги",
-            context => context.Reservations
-                .Include(x => x.Book)
-                .Include(x => x.Reader)
-                .OrderByDescending(x => x.ReservationDate),
-            context =>
-            {
-                var bookId = context.Books.OrderBy(x => x.BookId).Select(x => x.BookId).First();
-                var readerId = context.Readers.OrderBy(x => x.ReaderId).Select(x => x.ReaderId).First();
-                return new Reservation
-                {
-                    BookId = bookId,
-                    ReaderId = readerId,
-                    ReservationDate = DateTime.Today,
-                    Status = "Активно"
-                };
-            },
-            (context, item) => context.Reservations.Add(item),
-            (context, item) => context.Reservations.Remove(item),
-            new List<ColumnSpec>
-            {
-                new() { Header = "Код", Property = "ReservationId", Width = 55, ReadOnly = true },
-                new() { Header = "Книга", Property = "BookId", Kind = ColumnKind.Combo, Width = 260, Items = books },
-                new() { Header = "Читатель", Property = "ReaderId", Kind = ColumnKind.Combo, Width = 260, Items = readers },
-                new() { Header = "Дата бронирования", Property = "ReservationDate", Kind = ColumnKind.Date, Width = 130 },
-                new() { Header = "Статус", Property = "Status", Kind = ColumnKind.Combo, Width = 110, Items = statuses }
-            },
-            reservation => $"{reservation.Book?.Title} {reservation.Reader?.LastName} {reservation.Status}");
     }
 }

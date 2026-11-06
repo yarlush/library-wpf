@@ -19,10 +19,6 @@ public class OperationsView : UserControl
     private readonly DatePicker _returnDate = new();
     private readonly TextBlock _returnResult = new();
 
-    private readonly ComboBox _reserveReader = new();
-    private readonly ComboBox _reserveBook = new();
-    private readonly TextBlock _reserveResult = new();
-
     private readonly ComboBox _writeOffCopy = new();
     private readonly TextBlock _writeOffResult = new();
     private readonly TabControl _tabs = new();
@@ -45,7 +41,7 @@ public class OperationsView : UserControl
         });
         header.Children.Add(new TextBlock
         {
-            Text = "Оформление выдачи, возврата, бронирования и списания экземпляров",
+            Text = "Оформление выдачи, возврата и списания экземпляров",
             FontSize = 13,
             Foreground = new SolidColorBrush(Color.FromRgb(93, 109, 126)),
             Margin = new Thickness(0, 4, 0, 0)
@@ -58,7 +54,6 @@ public class OperationsView : UserControl
         _tabs.Padding = new Thickness(4);
         _tabs.Items.Add(BuildIssueTab());
         _tabs.Items.Add(BuildReturnTab());
-        _tabs.Items.Add(BuildReserveTab());
         _tabs.Items.Add(BuildWriteOffTab());
         Grid.SetRow(_tabs, 1);
         root.Children.Add(_tabs);
@@ -131,33 +126,6 @@ public class OperationsView : UserControl
         panel.Children.Add(_returnResult);
 
         return MakeTab("Возврат", panel);
-    }
-
-    private TabItem BuildReserveTab()
-    {
-        var panel = CreatePanel(
-            "Бронирование книги",
-            "Читатель может забронировать книгу, если у него ещё нет активного бронирования этой книги.");
-
-        var grid = CreateFormGrid();
-        AddRow(grid, 0, "Читатель:", _reserveReader);
-        AddRow(grid, 1, "Книга:", _reserveBook);
-        panel.Children.Add(grid);
-
-        _reserveReader.Width = 460;
-        _reserveBook.Width = 460;
-
-        var button = MakePrimaryButton("Забронировать");
-        button.Margin = new Thickness(0, 18, 0, 0);
-        button.Click += (_, _) => ReserveBook();
-        panel.Children.Add(button);
-
-        _reserveResult.Margin = new Thickness(0, 14, 0, 0);
-        _reserveResult.FontSize = 13;
-        _reserveResult.Foreground = new SolidColorBrush(Color.FromRgb(39, 174, 96));
-        panel.Children.Add(_reserveResult);
-
-        return MakeTab("Бронирование", panel);
     }
 
     private TabItem BuildWriteOffTab()
@@ -270,17 +238,12 @@ public class OperationsView : UserControl
         try
         {
             using var context = new LibraryContext();
-            _issueReader.ItemsSource = Lookups.ActiveReaders(context);
+            _issueReader.ItemsSource = Lookups.Readers(context);
             _issueCopy.ItemsSource = Lookups.AvailableCopies(context);
             _issueEmployee.ItemsSource = Lookups.Employees(context);
             if (_issueReader.Items.Count > 0) _issueReader.SelectedIndex = 0;
             if (_issueCopy.Items.Count > 0) _issueCopy.SelectedIndex = 0;
             if (_issueEmployee.Items.Count > 0) _issueEmployee.SelectedIndex = 0;
-
-            _reserveReader.ItemsSource = Lookups.ActiveReaders(context);
-            _reserveBook.ItemsSource = Lookups.Books(context);
-            if (_reserveReader.Items.Count > 0) _reserveReader.SelectedIndex = 0;
-            if (_reserveBook.Items.Count > 0) _reserveBook.SelectedIndex = 0;
 
             _writeOffCopy.ItemsSource = Lookups.AvailableCopies(context);
             if (_writeOffCopy.Items.Count > 0) _writeOffCopy.SelectedIndex = 0;
@@ -384,32 +347,6 @@ public class OperationsView : UserControl
         catch (Exception ex)
         {
             ShowError("Не удалось оформить возврат.", ex);
-        }
-    }
-
-    private void ReserveBook()
-    {
-        if (_reserveReader.SelectedValue is not int readerId || _reserveBook.SelectedValue is not int bookId)
-        {
-            MessageBox.Show("Выберите читателя и книгу.",
-                "Библиотека", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        try
-        {
-            var parameters = new[]
-            {
-                new SqlParameter("@BookId", SqlDbType.Int) { Value = bookId },
-                new SqlParameter("@ReaderId", SqlDbType.Int) { Value = readerId },
-                new SqlParameter("@ReservationId", SqlDbType.Int) { Direction = ParameterDirection.Output }
-            };
-            var result = RawDb.ExecuteProcedure("usp_ReserveBook", parameters);
-            _reserveResult.Text = $"Книга забронирована. Код брони: {result["@ReservationId"]}.";
-        }
-        catch (Exception ex)
-        {
-            ShowError("Не удалось оформить бронирование.", ex);
         }
     }
 
