@@ -39,16 +39,17 @@ DECLARE @Genre NVARCHAR(60) = N'Фантастика';
 SELECT b.Title,
        b.PublicationYear,
        p.Name AS Publisher,
-       STRING_AGG(a.LastName + N' ' + a.FirstName, N', ')
-           WITHIN GROUP (ORDER BY a.LastName) AS Authors,
-       COUNT(c.CopyId) AS CopiesCount
+       (SELECT STRING_AGG(a.LastName + N' ' + a.FirstName, N', ')
+                   WITHIN GROUP (ORDER BY a.LastName, a.FirstName)
+        FROM BookAuthors ba
+        JOIN Authors a ON a.AuthorId = ba.AuthorId
+        WHERE ba.BookId = b.BookId) AS Authors,
+       (SELECT COUNT(*)
+        FROM Copies c
+        WHERE c.BookId = b.BookId) AS CopiesCount
   FROM Books b
   JOIN Publishers p ON p.PublisherId = b.PublisherId
-  JOIN BookAuthors ba ON ba.BookId = b.BookId
-  JOIN Authors a ON a.AuthorId = ba.AuthorId
-  LEFT JOIN Copies c ON c.BookId = b.BookId
  WHERE b.Genre = @Genre
- GROUP BY b.BookId, b.Title, b.PublicationYear, p.Name
  ORDER BY b.Title;
 GO
 

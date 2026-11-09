@@ -4,7 +4,7 @@
 
 - СУБД: Microsoft SQL Server 2019 Express (LocalDB)
 - Приложение: C#, WPF, .NET 10, Entity Framework Core 10, ADO.NET
-- Модель: 6 таблиц — `Readers`, `Employees`, `Publishers`, `Books`, `Copies`, `Loans`
+- Модель: 8 таблиц — `Readers`, `Employees`, `Publishers`, `Books`, `Authors`, `BookAuthors`, `Copies`, `Loans`
 
 ## Состав репозитория
 
@@ -14,7 +14,9 @@
 - `Views` — страницы приложения и операции обслуживания;
 - `sql/01_schema.sql` — создание базы данных, таблиц, индексов, триггера и процедур;
 - `sql/02_seed.sql` — тестовые данные;
-- `sql/03_queries.sql` — 10 аналитических запросов.
+- `sql/03_queries.sql` — 10 аналитических запросов для исходной схемы;
+- `sql_v3/01_add_authors.sql` — миграция схемы с авторами и связью M:N;
+- `sql_v3/03_queries.sql` — 5 аналитических запросов для схемы с авторами.
 
 ## Запуск
 
