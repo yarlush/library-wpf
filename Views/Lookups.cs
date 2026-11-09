@@ -14,6 +14,16 @@ public static class Lookups
             .Select(x => new LookupItem { Id = x.PublisherId, Display = x.Name })
             .ToList();
 
+    public static List<LookupItem> Authors(LibraryContext context)
+        => context.Authors.AsNoTracking().OrderBy(x => x.LastName).ThenBy(x => x.FirstName)
+            .AsEnumerable()
+            .Select(x => new LookupItem
+            {
+                Id = x.AuthorId,
+                Display = $"{x.LastName} {x.FirstName} {x.MiddleName}".Trim()
+            })
+            .ToList();
+
     public static List<LookupItem> Books(LibraryContext context)
         => context.Books.AsNoTracking().OrderBy(x => x.Title)
             .AsEnumerable()
