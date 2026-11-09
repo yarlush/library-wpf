@@ -1,4 +1,4 @@
-using LibraryWpf.Models;
+﻿using LibraryWpf.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace LibraryWpf.Data;
@@ -8,6 +8,8 @@ public class LibraryContext : DbContext
     public DbSet<Reader> Readers => Set<Reader>();
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Publisher> Publishers => Set<Publisher>();
+    public DbSet<Author> Authors => Set<Author>();
+    public DbSet<BookAuthor> BookAuthors => Set<BookAuthor>();
     public DbSet<Book> Books => Set<Book>();
     public DbSet<Copy> Copies => Set<Copy>();
     public DbSet<Loan> Loans => Set<Loan>();
@@ -20,6 +22,19 @@ public class LibraryContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Author>(entity =>
+        {
+            entity.HasMany(x => x.BookAuthors).WithOne(x => x.Author)
+                .HasForeignKey(x => x.AuthorId).OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<BookAuthor>(entity =>
+        {
+            entity.HasKey(x => new { x.BookId, x.AuthorId });
+            entity.HasOne(x => x.Book).WithMany(x => x.BookAuthors)
+                .HasForeignKey(x => x.BookId).OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<Book>(entity =>
         {
             entity.Property(x => x.ISBN).HasColumnType("varchar(20)");
@@ -58,3 +73,4 @@ public class LibraryContext : DbContext
         });
     }
 }
+

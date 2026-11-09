@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -21,6 +21,8 @@ public static class ScreenshotService
         await CapturePage(window, "loans", "05_loans.png", outputDirectory);
         await CapturePage(window, "publishers", "06_publishers.png", outputDirectory);
         await CapturePage(window, "employees", "07_employees.png", outputDirectory);
+        await CapturePage(window, "authors", "authors_v3.png", outputDirectory);
+        await CapturePage(window, "bookauthors", "bookauthors_v3.png", outputDirectory);
 
         window.NavigateTo("operations");
         await WaitAsync();
@@ -69,3 +71,4 @@ public static class ScreenshotService
         encoder.Save(stream);
     }
 }
+

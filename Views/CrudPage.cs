@@ -218,7 +218,7 @@ public class CrudPage<T> : UserControl where T : class, new()
             {
                 var binding = new Binding(spec.Property)
                 {
-                    Mode = BindingMode.TwoWay,
+                    Mode = spec.ReadOnly ? BindingMode.OneWay : BindingMode.TwoWay,
                     UpdateSourceTrigger = UpdateSourceTrigger.LostFocus
                 };
                 if (!string.IsNullOrWhiteSpace(spec.StringFormat))
@@ -348,4 +348,5 @@ public class CrudPage<T> : UserControl where T : class, new()
             MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }
+
 

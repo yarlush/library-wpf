@@ -41,6 +41,8 @@
                     <ListBoxItem Tag="readers">Читатели</ListBoxItem>
                     <ListBoxItem Tag="copies">Экземпляры</ListBoxItem>
                     <ListBoxItem Tag="loans">Выдачи</ListBoxItem>
+                    <ListBoxItem Tag="authors">Авторы</ListBoxItem>
+                    <ListBoxItem Tag="bookauthors">Связи книг и авторов</ListBoxItem>
                     <ListBoxItem Tag="publishers">Издательства</ListBoxItem>
                     <ListBoxItem Tag="employees">Сотрудники</ListBoxItem>
                     <ListBoxItem Tag="operations">Операции</ListBoxItem>

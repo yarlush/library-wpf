@@ -14,6 +14,8 @@ public static class Pages
         "copies" => Copies(),
         "loans" => Loans(),
         "publishers" => Publishers(),
+        "authors" => Authors(),
+        "bookauthors" => new BookAuthorsView(),
         "employees" => Employees(),
         "operations" => new OperationsView(),
         "about" => new AboutView(),
@@ -28,7 +30,9 @@ public static class Pages
         return new CrudPage<Book>(
             "Книги",
             "Библиографические описания книг, их авторы, жанры и издательства",
-            context => context.Books.Include(x => x.Publisher).OrderBy(x => x.Title),
+            context => context.Books.Include(x => x.Publisher)
+                .Include(x => x.BookAuthors).ThenInclude(x => x.Author)
+                .OrderBy(x => x.Title),
             context =>
             {
                 var publisherId = context.Publishers.OrderBy(x => x.PublisherId).Select(x => x.PublisherId).First();
@@ -40,7 +44,6 @@ public static class Pages
                     Pages = 100,
                     Price = 0,
                     Genre = "Роман",
-                    Author = "Новый автор",
                     PublisherId = publisherId
                 };
             },
@@ -55,10 +58,10 @@ public static class Pages
                 new() { Header = "Страниц", Property = "Pages", Width = 65 },
                 new() { Header = "Цена, руб.", Property = "Price", Width = 80, StringFormat = "N2" },
                 new() { Header = "Жанр", Property = "Genre", Width = 110 },
-                new() { Header = "Автор", Property = "Author", Width = 160 },
+                new() { Header = "Авторы", Property = "AuthorsDisplay", Width = 200, ReadOnly = true },
                 new() { Header = "Издательство", Property = "PublisherId", Kind = ColumnKind.Combo, Width = 130, Items = publishers }
             },
-            book => $"{book.Title} {book.ISBN} {book.Genre} {book.Author} {book.Publisher?.Name}");
+            book => $"{book.Title} {book.ISBN} {book.Genre} {book.AuthorsDisplay} {book.Publisher?.Name}");
     }
 
     private static CrudPage<Reader> Readers()
@@ -98,6 +101,25 @@ public static class Pages
                 new() { Header = "Регистрация", Property = "RegistrationDate", Kind = ColumnKind.Date, Width = 110 }
             },
             reader => $"{reader.LibraryCardNumber} {reader.LastName} {reader.FirstName} {reader.MiddleName} {reader.Phone} {reader.Email}");
+    }
+
+    private static CrudPage<Author> Authors()
+    {
+        return new CrudPage<Author>(
+            "Авторы",
+            "Справочник авторов книг",
+            context => context.Authors.OrderBy(x => x.LastName).ThenBy(x => x.FirstName),
+            _ => new Author { LastName = "Новый", FirstName = "Автор" },
+            (context, item) => context.Authors.Add(item),
+            (context, item) => context.Authors.Remove(item),
+            new List<ColumnSpec>
+            {
+                new() { Header = "Код", Property = "AuthorId", Width = 55, ReadOnly = true },
+                new() { Header = "Фамилия", Property = "LastName", Width = 150 },
+                new() { Header = "Имя", Property = "FirstName", Width = 130 },
+                new() { Header = "Отчество", Property = "MiddleName", Width = 150 }
+            },
+            author => $"{author.LastName} {author.FirstName} {author.MiddleName}");
     }
 
     private static CrudPage<Copy> Copies()
@@ -232,3 +254,4 @@ public static class Pages
             loan => $"{loan.Reader?.LastName} {loan.Copy?.InventoryNumber} {loan.Copy?.Book?.Title} {loan.IssueDate:dd.MM.yyyy}");
     }
 }
+

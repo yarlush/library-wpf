@@ -51,6 +51,28 @@ public class Publisher
     public ICollection<Book> Books { get; set; } = new List<Book>();
 }
 
+[Table("Authors")]
+public class Author
+{
+    [Key]
+    public int AuthorId { get; set; }
+    public string LastName { get; set; } = string.Empty;
+    public string FirstName { get; set; } = string.Empty;
+    public string? MiddleName { get; set; }
+
+    public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
+}
+
+[Table("BookAuthors")]
+public class BookAuthor
+{
+    public int BookId { get; set; }
+    public int AuthorId { get; set; }
+
+    public Book Book { get; set; } = null!;
+    public Author Author { get; set; } = null!;
+}
+
 [Table("Books")]
 public class Book
 {
@@ -62,10 +84,15 @@ public class Book
     public int Pages { get; set; }
     public decimal Price { get; set; }
     public string Genre { get; set; } = string.Empty;
-    public string Author { get; set; } = string.Empty;
     public int PublisherId { get; set; }
     public Publisher Publisher { get; set; } = null!;
+    public ICollection<BookAuthor> BookAuthors { get; set; } = new List<BookAuthor>();
     public ICollection<Copy> Copies { get; set; } = new List<Copy>();
+
+    [NotMapped]
+    public string AuthorsDisplay => string.Join(", ",
+        BookAuthors.OrderBy(x => x.Author.LastName)
+                   .Select(x => $"{x.Author.LastName} {x.Author.FirstName}".Trim()));
 }
 
 [Table("Copies")]
@@ -100,3 +127,4 @@ public class Loan
     public Reader Reader { get; set; } = null!;
     public Employee Employee { get; set; } = null!;
 }
+
